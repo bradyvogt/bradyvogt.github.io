@@ -1,5 +1,5 @@
 //Current time
-let today = new Date('2000-01-01T10:47:00');
+let today = new Date();
 const MINUTE_RANGE = 60;
 
 //Display 12hr time in page
