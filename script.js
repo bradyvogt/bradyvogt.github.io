@@ -1,23 +1,55 @@
-//Current time
-let today = new Date();
 const MINUTE_RANGE = 60;
+const DEFAULT_STOP = "stop_11";
 
-//Display 12hr time in page
-document.getElementById("date-time").innerHTML = toAmPm(today.getHours(),today.getMinutes());
+//Set selection if there's one saved
+// let curr_cookie = checkCookie("selection");
+// console.log(curr_cookie);
+// document.getElementById("dropSelect").value = curr_cookie;
 
-//Executes default dropdown choice
-dropSelect();
+//Current time
+var today = new Date();
+updateTime();
+
+//Update time every second
+setInterval(updateTime, 1000);
+
+//Filter out weekends for buses
+if(today.getDay() == 0 || today.getDay() == 6){
+	document.getElementById("message-box").innerHTML = "No Buses. Have a good weekend!";
+}else{
+	//Executes default dropdown choice
+	updateStopTimes();
+}
+
+function updateTime() {
+	today = new Date();
+	document.getElementById("date-time").innerHTML = today.toLocaleTimeString();
+	
+	//Update table times every minute
+	if(today.getSeconds() == 0){
+		updateStopTimes();
+	}
+}
 
 //Executed when dropdown is selected
-function dropSelect() {
+function updateStopTimes() {
 	//Retrieves selected option from dropdown
-	let stopList = document.getElementById("stopList");  
-	document.getElementById("stop-choice").innerHTML = stopList.options[stopList.selectedIndex].text;
+	let stopList = document.getElementById("stopList");
+
+	//Remember selection for next time
+	setCookie("selection", stopList.value, 12);
+
 	let stop_selection = window[stopList.options[stopList.selectedIndex].value]
 
 	//Gets array of times from selected stop
 	let array = getStopTimes(stop_selection, today, MINUTE_RANGE);
 
+	//If there is nothing display message
+	if(array[0] == null){
+		document.getElementById("message-box").innerHTML = `No Buses (Next ${MINUTE_RANGE} minutes)`;
+	}else{
+		document.getElementById("message-box").innerHTML = "";
+	}
 	//Creates html table from array
 	updateTable(array);
 }
@@ -103,4 +135,32 @@ function minuteDiff(startDate, endDate){
 	minute_diff = endDate.getMinutes() - startDate.getMinutes();
 
 	return hour_diff*60+minute_diff;
+}
+
+function setCookie(cname, cvalue, exdays) {
+  const d = new Date();
+  d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+  document.cookie = cname + "=" + cvalue + ";expires=" + d.toUTCString();
+}
+
+function getCookie(cname) {
+  let name = cname + "=";
+  let ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+function checkCookie(cname) {
+  let cvalue = getCookie(cname);
+  if(cvalue == ""){return DEFAULT_STOP}
+  else if(cvalue == null){return "null"}
+  else {return cvalue}
 }
