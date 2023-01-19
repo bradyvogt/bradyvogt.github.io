@@ -8,7 +8,10 @@ document.getElementById("stopList").value = curr_cookie;
 //Current time
 var today = new Date();
 var isWeekend = false;
-updateTime();
+window.addEventListener('load', (event) => {
+    console.log('DOM fully loaded and parsed');
+		updateTime();
+});
 
 //Update time every second
 setInterval(updateTime, 1000);
@@ -39,13 +42,12 @@ function updateStopTimes() {
 
 	//Remember selection for next time
 	setCookie("selection", stopList.value, 12);
-	let stop_selection = window[stopList.options[stopList.selectedIndex].value]
 
 	//Don't update times if weekend
 	if(isWeekend){return}
 
 	//Gets array of times from selected stop
-	let array = getStopTimes(stop_selection, today, MINUTE_RANGE);
+	let array = getStopTimes(stopList.value, today, MINUTE_RANGE);
 
 	//If there is nothing display message
 	if(array[0] == null){
@@ -84,27 +86,31 @@ function updateTable(inputArray) {
 }
 
 //Returns 2d Array with stops within time range
-function getStopTimes(busStopList, currDate, minuteRange){
+function getStopTimes(selectedStop, currDate, minuteRange){
 	let stops_array = [];
+	let stop_id = selectedStop.split("_")[1]
 
-	//Loops through all times in busStopList
-	for (let i = 0; i < busStopList.length; i++){
-		let time = busStopList[i].time;
+	//Filter down to bus stop and time range
+	for (let i = 0; i < stop_times.length; i++){
+		//Filter down to bus stop
+		if(stop_id != stop_times[i].stop_id){continue;}
+
+		let time = stop_times[i].time;
 		let hour = parseInt(time.split(":")[0]);
 		let minute = parseInt(time.split(":")[1]);
 
 		//Instantiate new date using time in data set
 		new_date = new Date(`2000-01-01T${("0" + time).slice(-5)}:00`);
 
-		//TODO: Doesn't need to evaluate difference if not in range
 		//Calculate minute difference
 		let minute_diff = minuteDiff(currDate,new_date);
 
-		//Assign stop info to array
+		//Take stops in time range and add them to an array
 		if(minute_diff >= 0 && minute_diff <= minuteRange){
-			stops_array.push([busStopList[i].route, toAmPm(hour,minute), minute_diff])
+			stops_array.push([stop_times[i].route, toAmPm(hour,minute), minute_diff, stop_times[i].next_stop_name])
 		}
 	}
+
 	//Sort stops_array by Wait Time (asc)
 	stops_array.sort(function (a, b) {return a[2] - b[2];});
 
