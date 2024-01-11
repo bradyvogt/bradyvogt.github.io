@@ -1,16 +1,24 @@
 const MINUTE_RANGE = 60;
 const DEFAULT_STOP = "stop_1";
 
-//Set selection if there's one saved
-let curr_cookie = checkCookie("selection");
-document.getElementById("stopList").value = curr_cookie;
-
 //Current time
 var today = new Date();
 var isWeekend = false;
 window.addEventListener('load', (event) => {
-    console.log('DOM fully loaded and parsed');
-		updateTime();
+	updateTime();
+
+	// Get the query parameter from the URL
+	const urlParams = new URLSearchParams(window.location.search);
+	const urlParamStop = urlParams.get('loc');
+
+	//Set selection if there's one saved
+	if (urlParamStop != null) {
+		document.getElementById("stopList").value = urlParamStop;
+	}
+	else {
+		let curr_cookie = checkCookie("selection");
+		document.getElementById("stopList").value = curr_cookie;
+	}
 });
 
 //Update time every second
